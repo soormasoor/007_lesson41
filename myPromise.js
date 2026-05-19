@@ -3,29 +3,40 @@ class myPromise {
   value;
   state = "pending";
   constructor(callbackFn) {
-    try {
-      this.value = callbackFn();
+    function myResolve(value) {
+      if (this.state !== "pending") return;
+
+      this.value = value;
       this.state = "fulfilled";
-    } catch (e) {
-      this.value = e;
+    }
+
+    function myReject(value) {
+      if (this.state !== "pending") return;
+
+      this.value = value;
       this.state = "rejected";
     }
 
-    return this;
+    try {
+      callbackFn(myResolve, myReject);
+    } catch (e) {
+      reject(e);
+    }
   }
 
-  then(callbackFn) {
+  then(successFn, failFn) {
     if (this.state === "fulfilled") {
-      callbackFn(this.value);
+      successFn(this.value);
+    } else if (this.state === "rejected") {
+      failFn(this.value);
     }
     return this;
   }
 
-  catch(callbackFn) {
+  catch(failFn) {
     if (this.state === "rejected") {
-      callbackFn(this.value);
+      this.then(null, failFn);
     }
-    return this;
   }
 
   finally(callbackFn) {
